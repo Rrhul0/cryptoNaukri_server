@@ -2,6 +2,7 @@ import express, { response } from 'express'
 import cors from 'cors'
 import dotenv from 'dotenv'
 import { MongoClient } from 'mongodb'
+import crypto from 'crypto'
 
 const app = express()
 const port = process.env.PORT || 5000
@@ -15,12 +16,24 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 
 app.post('/signup', async (req, res) => {
     const data = req.body
-    console.log(data)
     if (!data) {
         res.statusCode(204)
         res.send('No Data Provied')
         return
     }
+    const password = data.password
+    if (!password) {
+        res.statusCode(204)
+        res.send('No Password Provied')
+        return
+    } else {
+        const salt = crypto.randomBytes(16).toString('hex')
+        const hash = crypto.pbkdf2Sync(password, salt, 1000, 64, 'sha512').toString('hex')
+        data.salt = salt
+        data.hash = hash
+        delete data.password
+    }
+    console.log(data)
     try {
         await client.connect()
         const collection = client.db('cryptonaukri').collection('users')
