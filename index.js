@@ -4,7 +4,7 @@ import dotenv from 'dotenv'
 import { MongoClient } from 'mongodb'
 
 const app = express()
-const port = 5000
+const port = process.env.PORT || 5000
 
 app.use(cors())
 app.use(express.json())
@@ -33,6 +33,9 @@ app.post('/signup', async (req, res) => {
         await client.close()
         return
     }
+})
+app.get('/test', (req, res) => {
+    res.send('App is working')
 })
 
 app.listen(port, () => {
