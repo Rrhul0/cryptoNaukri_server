@@ -1,4 +1,4 @@
-import express from 'express'
+import express, { response } from 'express'
 import cors from 'cors'
 import dotenv from 'dotenv'
 import { MongoClient } from 'mongodb'
@@ -24,11 +24,35 @@ app.post('/signup', async (req, res) => {
     try {
         await client.connect()
         const collection = client.db('cryptonaukri').collection('users')
-        collection.insertOne(data)
+        await collection.insertOne(data)
 
         res.send('User Created')
 
         await client.db('admin').command({ ping: 1 })
+    } finally {
+        await client.close()
+        return
+    }
+})
+
+app.post('/check-email', async (req, res) => {
+    const email = req.body.email
+    if (!email) {
+        res.sendStatus(204)
+        res.send('No Data Provided')
+        return
+    }
+    try {
+        await client.connect()
+        const collection = client.db('cryptonaukri').collection('users')
+        const remail = await collection.findOne({ email })
+        if (!remail) {
+            res.sendStatus(200)
+            res.send('Not match with db emails')
+        } else {
+            res.sendStatus(203)
+            res.send('matched with db emails, cant use')
+        }
     } finally {
         await client.close()
         return
